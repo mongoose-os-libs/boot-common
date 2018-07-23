@@ -28,7 +28,7 @@
 static struct mgos_vfs_dev *s_bcfg0_dev, *s_bcfg1_dev;
 
 static struct mgos_vfs_dev *s_bcfg_dev;
-static struct mgos_boot_cfg s_bcfg;
+static struct mgos_boot_cfg *s_bcfg;
 static size_t s_bcfg_off;
 
 static void mgos_boot_cfg_find_latest_dev(struct mgos_vfs_dev *dev, bool *found,
@@ -148,14 +148,14 @@ void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg) {
 }
 
 struct mgos_boot_cfg *mgos_boot_cfg_get(void) {
-  return &s_bcfg;
+  return s_bcfg;
 }
 
 static bool mgos_boot_cfg_find_latest(void) {
   bool found = false;
-  mgos_boot_cfg_find_latest_dev(s_bcfg0_dev, &found, &s_bcfg, &s_bcfg_dev,
+  mgos_boot_cfg_find_latest_dev(s_bcfg0_dev, &found, s_bcfg, &s_bcfg_dev,
                                 &s_bcfg_off);
-  mgos_boot_cfg_find_latest_dev(s_bcfg1_dev, &found, &s_bcfg, &s_bcfg_dev,
+  mgos_boot_cfg_find_latest_dev(s_bcfg1_dev, &found, s_bcfg, &s_bcfg_dev,
                                 &s_bcfg_off);
   return found;
 }
@@ -197,10 +197,13 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
 bool mgos_boot_cfg_init(void) {
   bool res = false;
 
+  s_bcfg = calloc(1, sizeof(*s_bcfg));
   s_bcfg0_dev = mgos_vfs_dev_open(MGOS_BOOT_CFG_DEV_0);
   s_bcfg1_dev = mgos_vfs_dev_open(MGOS_BOOT_CFG_DEV_1);
   if (s_bcfg0_dev == NULL && s_bcfg1_dev == NULL) {
+#ifdef MGOS_BOOT_BUILD
     mgos_boot_dbg_printf("No config devs!\r\n");
+#endif
     goto out;
   }
   res = mgos_boot_cfg_find_latest();
@@ -212,13 +215,17 @@ bool mgos_boot_cfg_init(void) {
     mgos_boot_dbg_printf("Writing default config...\r\n");
     mgos_vfs_dev_erase(s_bcfg0_dev, 0, mgos_vfs_dev_get_size(s_bcfg0_dev));
     mgos_vfs_dev_erase(s_bcfg1_dev, 0, mgos_vfs_dev_get_size(s_bcfg1_dev));
-    mgos_boot_cfg_set_default(&s_bcfg);
-    res = mgos_boot_cfg_write(&s_bcfg, false /* dump*/);
+    mgos_boot_cfg_set_default(s_bcfg);
+    res = mgos_boot_cfg_write(s_bcfg, false /* dump*/);
     /* Try again after writing */
     if (res) res = mgos_boot_cfg_find_latest();
 #endif /* MGOS_BOOT_BUILD */
   }
 out:
+  if (!res) {
+    free(s_bcfg);
+    s_bcfg = NULL;
+  }
   return res;
 }
 
