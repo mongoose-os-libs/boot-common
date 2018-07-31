@@ -38,3 +38,8 @@ void mgos_boot_dbg_printf(const char *fmt, ...) {
   buf[199] = '\0';
   mgos_boot_dbg_puts(buf);
 }
+
+void mgos_boot_dbg_putc(char c) WEAK;
+void mgos_boot_dbg_putc(char c) {
+  putc(c, stderr);
+}
