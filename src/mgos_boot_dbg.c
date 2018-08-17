@@ -31,11 +31,11 @@ void mgos_boot_dbg_putl(const char *s) {
 
 void mgos_boot_dbg_printf(const char *fmt, ...) {
   va_list ap;
-  char buf[200];
+  char buf[300];
   va_start(ap, fmt);
   vsnprintf(buf, sizeof(buf) - 1, fmt, ap);
   va_end(ap);
-  buf[199] = '\0';
+  buf[sizeof(buf) - 1] = '\0';
   mgos_boot_dbg_puts(buf);
 }
 

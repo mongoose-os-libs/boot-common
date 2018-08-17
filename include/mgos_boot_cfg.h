@@ -44,7 +44,6 @@ extern "C" {
 #endif
 
 #define MGOS_BOOT_CFG_MAGIC 0x30464342 /* "BCF0" LE */
-//#define MGOS_BOOT_CFG_MAGIC 11
 
 struct mgos_boot_slot_cfg {
   uint32_t flags;
@@ -121,6 +120,8 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
                                int8_t excl2);
 
 void mgos_boot_cfg_deinit(void);
+
+bool mgos_boot_cfg_should_write_default(void);
 
 #ifdef __cplusplus
 }

@@ -194,9 +194,28 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
   return res;
 }
 
+#ifdef MGOS_BOOT_BUILD
+static bool mgos_boot_cfg_write_default(void) {
+  bool res = false;
+  mgos_boot_dbg_printf("Writing default config...\r\n");
+  if (mgos_vfs_dev_erase(s_bcfg0_dev, 0, mgos_vfs_dev_get_size(s_bcfg0_dev)) !=
+      0) {
+    goto out;
+  }
+  if (s_bcfg1_dev != NULL &&
+      mgos_vfs_dev_erase(s_bcfg1_dev, 0, mgos_vfs_dev_get_size(s_bcfg1_dev)) !=
+          0) {
+    goto out;
+  }
+  mgos_boot_cfg_set_default(s_bcfg);
+  res = mgos_boot_cfg_write(s_bcfg, false /* dump*/);
+out:
+  return res;
+}
+#endif
+
 bool mgos_boot_cfg_init(void) {
   bool res = false;
-
   s_bcfg = calloc(1, sizeof(*s_bcfg));
   s_bcfg0_dev = mgos_vfs_dev_open(MGOS_BOOT_CFG_DEV_0);
   s_bcfg1_dev = mgos_vfs_dev_open(MGOS_BOOT_CFG_DEV_1);
@@ -206,19 +225,21 @@ bool mgos_boot_cfg_init(void) {
 #endif
     goto out;
   }
+
+#ifdef MGOS_BOOT_BUILD
+  if (mgos_boot_cfg_should_write_default()) {
+    if (!mgos_boot_cfg_write_default()) goto out;
+  }
+#endif
+
   res = mgos_boot_cfg_find_latest();
   if (res) {
     mgos_boot_dbg_printf("Cfg @ %s:%lu\r\n", s_bcfg_dev->name,
                          (unsigned long) s_bcfg_off);
   } else {
 #ifdef MGOS_BOOT_BUILD
-    mgos_boot_dbg_printf("Writing default config...\r\n");
-    mgos_vfs_dev_erase(s_bcfg0_dev, 0, mgos_vfs_dev_get_size(s_bcfg0_dev));
-    mgos_vfs_dev_erase(s_bcfg1_dev, 0, mgos_vfs_dev_get_size(s_bcfg1_dev));
-    mgos_boot_cfg_set_default(s_bcfg);
-    res = mgos_boot_cfg_write(s_bcfg, false /* dump*/);
-    /* Try again after writing */
-    if (res) res = mgos_boot_cfg_find_latest();
+    /* Read again after writing */
+    res = mgos_boot_cfg_write_default() && mgos_boot_cfg_find_latest();
 #endif /* MGOS_BOOT_BUILD */
   }
 out:
