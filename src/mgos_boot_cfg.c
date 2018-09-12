@@ -170,8 +170,8 @@ void mgos_boot_cfg_set_default(struct mgos_boot_cfg *cfg) {
 }
 
 int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
-                               uintptr_t app_map_addr, int8_t excl1,
-                               int8_t excl2) {
+                               uintptr_t app_map_addr, bool want_fs,
+                               int8_t excl1, int8_t excl2) {
   int8_t res = -1;
   /* We randomize somewhat by starting at different point. */
   for (uint32_t j = 0; j < cfg->num_slots; j++) {
@@ -179,10 +179,12 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
     const struct mgos_boot_slot *s = &cfg->slots[i];
     /* Can never return an active slot. */
     if (i == cfg->active_slot) continue;
-    /* If user doesn't want a particular slot, skip it. */
-    if (i == excl1 || i == excl2) continue;
     /* Must match map address, if specified. */
     if (app_map_addr != 0 && s->cfg.app_map_addr != app_map_addr) continue;
+    /* Make sure there is a filesystem slot, if needed. */
+    if (want_fs && s->cfg.fs_dev[0] == '\0') continue;
+    /* If user doesn't want a particular slot, skip it. */
+    if (i == excl1 || i == excl2) continue;
     /* Must be a valid writeable slot. */
     if (!(s->cfg.flags & MGOS_BOOT_SLOT_F_VALID)) continue;
     if (!(s->cfg.flags & MGOS_BOOT_SLOT_F_WRITEABLE)) continue;

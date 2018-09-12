@@ -116,8 +116,8 @@ void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg);
 bool mgos_boot_cfg_write(struct mgos_boot_cfg *cfg, bool dump);
 
 int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
-                               uintptr_t app_map_addr, int8_t excl1,
-                               int8_t excl2);
+                               uintptr_t app_map_addr, bool want_fs,
+                               int8_t excl1, int8_t excl2);
 
 void mgos_boot_cfg_deinit(void);
 
