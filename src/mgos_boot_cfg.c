@@ -84,7 +84,7 @@ out:
     mgos_boot_cfg_dump(cfg);
   } else {
     mgos_boot_dbg_printf(
-        "Cfg seq %lu %s %s (%d) @ %s:%lu\r\n", (unsigned long) cfg->seq, what,
+        "Cfg seq %lu %s %s (%d) @ %s:%lu\n", (unsigned long) cfg->seq, what,
         (r == 0 ? "ok" : "failed"), r, dev->name, (unsigned long) off);
   }
   return r == 0;
@@ -118,7 +118,7 @@ bool mgos_boot_cfg_write(struct mgos_boot_cfg *cfg, bool dump) {
 }
 
 void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg) {
-  mgos_boot_dbg_printf("Cfg seq %lu nsl %d a %d r %d f 0x%lx(%c%c%c%c)\r\n",
+  mgos_boot_dbg_printf("Cfg seq %lu nsl %d a %d r %d f 0x%lx(%c%c%c%c)\n",
                        (unsigned long) cfg->seq, cfg->num_slots,
                        cfg->active_slot, cfg->revert_slot,
                        (unsigned long) cfg->flags,
@@ -130,8 +130,8 @@ void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg) {
     const struct mgos_boot_slot_cfg *sc = &cfg->slots[i].cfg;
     const struct mgos_boot_slot_state *ss = &cfg->slots[i].state;
     mgos_boot_dbg_printf(
-        "%d: 0x%lx(%c%c) %s ma 0x%lx fs %s; %lu org 0x%lx crc 0x%lx f 0x%lx e "
-        "%u\r\n",
+        "%d: 0x%lx(%c%c) %s ma 0x%lx fs %s; "
+        "%lu org 0x%lx crc 0x%lx f 0x%lx e %u\n",
         i, (unsigned long) sc->flags,
         (sc->flags & MGOS_BOOT_SLOT_F_WRITEABLE ? 'W' : '.'),
         (sc->flags & MGOS_BOOT_SLOT_F_VALID ? 'V' : '.'), sc->app_dev,
@@ -139,11 +139,6 @@ void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg) {
         (unsigned long) ss->app_len, (unsigned long) ss->app_org,
         (unsigned long) ss->app_crc32, (unsigned long) ss->app_flags,
         ss->err_count);
-  }
-  if (cfg->swap.phase != 0) {
-    const struct mgos_boot_swap_state *sws = &cfg->swap;
-    mgos_boot_dbg_printf("S: %d <-> %d t %d ph %d\r\n", sws->a, sws->b, sws->t,
-                         sws->phase);
   }
 }
 
@@ -199,7 +194,7 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
 #ifdef MGOS_BOOT_BUILD
 static bool mgos_boot_cfg_write_default(void) {
   bool res = false;
-  mgos_boot_dbg_printf("Writing default config...\r\n");
+  mgos_boot_dbg_printf("Writing default config...\n");
   if (mgos_vfs_dev_erase(s_bcfg0_dev, 0, mgos_vfs_dev_get_size(s_bcfg0_dev)) !=
       0) {
     goto out;
@@ -223,7 +218,7 @@ bool mgos_boot_cfg_init(void) {
   s_bcfg1_dev = mgos_vfs_dev_open(MGOS_BOOT_CFG_DEV_1);
   if (s_bcfg0_dev == NULL && s_bcfg1_dev == NULL) {
 #ifdef MGOS_BOOT_BUILD
-    mgos_boot_dbg_printf("No config devs!\r\n");
+    mgos_boot_dbg_printf("No config devs!\n");
 #endif
     goto out;
   }
@@ -236,7 +231,7 @@ bool mgos_boot_cfg_init(void) {
 
   res = mgos_boot_cfg_find_latest();
   if (res) {
-    mgos_boot_dbg_printf("Cfg @ %s:%lu\r\n", s_bcfg_dev->name,
+    mgos_boot_dbg_printf("Cfg @ %s:%lu\n", s_bcfg_dev->name,
                          (unsigned long) s_bcfg_off);
   } else {
 #ifdef MGOS_BOOT_BUILD

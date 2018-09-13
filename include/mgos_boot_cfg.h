@@ -73,11 +73,6 @@ struct mgos_boot_slot {
   struct mgos_boot_slot_state state;
 } __attribute__((packed));
 
-struct mgos_boot_swap_state {
-  int8_t phase;
-  int8_t a, b, t;
-} __attribute__((packed));
-
 struct mgos_boot_cfg {
   uint32_t magic;
   uint32_t seq; /* Sequencer. Increasing value = newer. */
@@ -86,7 +81,7 @@ struct mgos_boot_cfg {
   int8_t active_slot;
   int8_t revert_slot;
   uint32_t flags;
-  struct mgos_boot_swap_state swap;
+  // struct mgos_boot_swap_state swap;
   struct mgos_boot_slot slots[MGOS_BOOT_CFG_NUM_SLOTS];
 } __attribute__((packed));
 
