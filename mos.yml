@@ -15,5 +15,6 @@ tags:
   - c
   - boot
   - core
+  - docs:core:Boot Loader
 
 manifest_version: 2018-06-20
