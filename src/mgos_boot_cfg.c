@@ -26,7 +26,7 @@
 
 #include "mgos_boot_dbg.h"
 
-#if defined(MGOS_BL_ENABLE) || defined(MGOS_BOOT_BUILD)
+#if defined(MGOS_BL_ENABLE) || defined(MGOS_BOOT_BUILD) /* ifdef-ok */
 struct mgos_boot_state g_boot_state __attribute((section(".boot_state")));
 
 static struct mgos_vfs_dev *s_bcfg0_dev, *s_bcfg1_dev;
