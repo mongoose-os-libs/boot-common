@@ -43,7 +43,7 @@ extern "C" {
 #define MGOS_BOOT_CFG_MAX_RECS_PER_DEV 32
 #endif
 
-#define MGOS_BOOT_CFG_MAGIC 0x30464342 /* "BCF0" LE */
+#define MGOS_BOOT_CFG_MAGIC 0x31534f4d /* "MOS1" LE */
 
 struct mgos_boot_slot_cfg {
   uint32_t flags;
@@ -81,7 +81,6 @@ struct mgos_boot_cfg {
   int8_t active_slot;
   int8_t revert_slot;
   uint32_t flags;
-  // struct mgos_boot_swap_state swap;
   struct mgos_boot_slot slots[MGOS_BOOT_CFG_NUM_SLOTS];
 } __attribute__((packed));
 
@@ -90,15 +89,45 @@ struct mgos_boot_cfg {
 #define MGOS_BOOT_F_FIRST_BOOT_B (1 << 2)
 #define MGOS_BOOT_F_MERGE_FS (1 << 3)
 
+#define MGOS_BOOT_CFG_REC_PADDING_SIZE \
+  (MGOS_BOOT_CFG_REC_SIZE - sizeof(struct mgos_boot_cfg) - sizeof(uint32_t))
+
 struct mgos_boot_cfg_record {
   struct mgos_boot_cfg cfg;
-  uint8_t padding[MGOS_BOOT_CFG_REC_SIZE - sizeof(struct mgos_boot_cfg) -
-                  sizeof(uint32_t)];
+  uint8_t padding[MGOS_BOOT_CFG_REC_PADDING_SIZE];
   uint32_t crc32; /* CRC32 of the fields above. */
+} __attribute__((packed));
+
+#define MGOS_BOOT_STATE_SIZE 1024
+#define MGOS_BOOT_STATE_PADDING_SIZE                                \
+  (MGOS_BOOT_STATE_SIZE - sizeof(struct mgos_boot_cfg_record) - 8 - \
+   3 * sizeof(uint32_t))
+
+/* This state is located at a static location in memory and is populated
+ * by the boot loader. */
+struct mgos_boot_state {
+  /* If next_app_org is non-zero and magic is valid, boot loader will skip
+   * everything and boot app at this address (using mgos_boot_app).
+   * This is a one-shot action: before jumping the address will be zeroed,
+   * so next boot will go into boot loader. */
+  uint32_t magic;
+  uintptr_t next_app_org;
+  /* Location of the most recent config record: device name and offset. */
+  char cfg_dev[8];
+  uint32_t cfg_off;
+  /* The most recent config record used by the loader. App will use this. */
+  struct mgos_boot_cfg_record cfgr;
+  uint8_t padding[MGOS_BOOT_STATE_PADDING_SIZE];
 } __attribute__((packed));
 
 #define MGOS_BOOT_CFG_DEV_0 "bcfg0"
 #define MGOS_BOOT_CFG_DEV_1 "bcfg1"
+
+void mgos_boot_set_next_app_org(uintptr_t app_org);
+
+#ifdef MGOS_BOOT_BUILD
+uintptr_t mgos_boot_get_next_app_org(void);
+#endif
 
 bool mgos_boot_cfg_init(void);
 
@@ -124,3 +153,5 @@ bool mgos_boot_cfg_should_write_default(void);
 
 CS_CTASSERT(sizeof(struct mgos_boot_cfg_record) == MGOS_BOOT_CFG_REC_SIZE,
             do_not_change_size_of_boot_config_record);
+CS_CTASSERT(sizeof(struct mgos_boot_state) == MGOS_BOOT_STATE_SIZE,
+            do_not_change_size_of_boot_state);
