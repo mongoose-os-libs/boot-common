@@ -145,10 +145,10 @@ void mgos_boot_cfg_dump(const struct mgos_boot_cfg *cfg) {
         i, (unsigned long) sc->flags,
         (sc->flags & MGOS_BOOT_SLOT_F_WRITEABLE ? 'W' : '.'),
         (sc->flags & MGOS_BOOT_SLOT_F_VALID ? 'V' : '.'), sc->app_dev,
-        (unsigned long) sc->app_map_addr, sc->fs_dev,
-        (unsigned long) ss->app_len, (unsigned long) ss->app_org,
-        (unsigned long) ss->app_crc32, (unsigned long) ss->app_flags,
-        ss->err_count);
+        (unsigned long) sc->app_map_addr,
+        (sc->fs_dev[0] != '\0' ? sc->fs_dev : "-"), (unsigned long) ss->app_len,
+        (unsigned long) ss->app_org, (unsigned long) ss->app_crc32,
+        (unsigned long) ss->app_flags, ss->err_count);
   }
 }
 
