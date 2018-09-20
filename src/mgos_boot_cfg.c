@@ -52,6 +52,9 @@ static void mgos_boot_cfg_find_latest_dev(struct mgos_vfs_dev *dev, bool *found,
     *cfg_off = off;
     *cfg = cfgr.cfg;
     *found = true;
+    strcpy(g_boot_state.cfg_dev, dev->name);
+    g_boot_state.cfg_off = off;
+    memcpy(&g_boot_state.cfgr, &cfgr, sizeof(g_boot_state.cfgr));
   }
 }
 
