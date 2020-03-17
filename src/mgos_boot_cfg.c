@@ -36,6 +36,10 @@ static size_t s_bcfg_off;
 
 static struct mgos_boot_cfg *s_bcfg;
 
+const struct mgos_boot_state *mgos_boot_get_state(void) {
+  return &g_boot_state;
+}
+
 static void mgos_boot_cfg_find_latest_dev(struct mgos_vfs_dev *dev, bool *found,
                                           struct mgos_boot_cfg *cfg,
                                           struct mgos_vfs_dev **cfg_dev,

@@ -99,9 +99,15 @@ struct mgos_boot_cfg_record {
 } __attribute__((packed));
 
 #define MGOS_BOOT_STATE_SIZE 1024
+#ifdef STM32
+#define MGOS_BOOT_STATE_EXTRA (2 * sizeof(uint32_t))
+#endif
+#ifndef MGOS_BOOT_STATE_EXTRA
+#define MGOS_BOOT_STATE_EXTRA 0
+#endif
 #define MGOS_BOOT_STATE_PADDING_SIZE                                \
   (MGOS_BOOT_STATE_SIZE - sizeof(struct mgos_boot_cfg_record) - 8 - \
-   3 * sizeof(uint32_t))
+   3 * sizeof(uint32_t) - MGOS_BOOT_STATE_EXTRA)
 
 /* This state is located at a static location in memory and is populated
  * by the boot loader. */
@@ -117,6 +123,15 @@ struct mgos_boot_state {
   uint32_t cfg_off;
   /* The most recent config record used by the loader. App will use this. */
   struct mgos_boot_cfg_record cfgr;
+#ifdef STM32
+  /*
+   * Power status register sampled early at boot-up.
+   * Some of the bits do not survive the soft-reset performed to boot the app
+   * so we preserve their initial value here for app to use later.
+   */
+  uint32_t pwr_sr1;
+  uint32_t pwr_sr2;
+#endif
   uint8_t padding[MGOS_BOOT_STATE_PADDING_SIZE];
 } __attribute__((packed));
 
@@ -146,6 +161,8 @@ int8_t mgos_boot_cfg_find_slot(const struct mgos_boot_cfg *cfg,
 void mgos_boot_cfg_deinit(void);
 
 bool mgos_boot_cfg_should_write_default(void);
+
+const struct mgos_boot_state *mgos_boot_get_state(void);
 
 #ifdef __cplusplus
 }
